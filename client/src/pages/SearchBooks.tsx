@@ -8,13 +8,15 @@ import {
   Card,
   Row
 } from 'react-bootstrap';
-
-import { getUserBooks, saveBook, searchGoogleBooks } from '../utils/API';
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_USER_BOOKS } from '../graphql/queries';
+import { SAVE_BOOK } from '../graphql/mutations';
+import { searchGoogleBooks } from '../utils/API';
 import { Book, GoogleAPIBook } from '../interfaces/index.d';
 import { useStore } from '../store';
 
 const SearchBooks = () => {
-  const {state} = useStore()!;
+  const { state } = useStore()!;
   // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState<Book[]>([]);
   // create state for holding our search field data
@@ -23,19 +25,18 @@ const SearchBooks = () => {
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState<string[]>([]);
 
+  const { data } = useQuery(GET_USER_BOOKS);
+  const [saveBook] = useMutation(SAVE_BOOK);
+
   // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
   useEffect(() => {
-    if (!state.loading && state.user) {
-      getUserBooks()
-        .then((res) => {
-          // Store just the googleBookId's from the user's books to the savedBooks array
-          setSavedBookIds([
-            ...res.data.map((book: Book) => book.googleBookId)
-          ]);
-        });
+    if (!state.loading && state.user && data) {
+      setSavedBookIds([
+        ...data.getUserBooks.map((book: Book) => book.googleBookId)
+      ]);
     }
-  });
+  }, [state.loading, state.user, data]);
 
   // create method to search for books and set state on form submit
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -66,7 +67,9 @@ const SearchBooks = () => {
   // create function to handle saving a book to our database
   const handleSaveBook = async (book: Book) => {
     try {
-      await saveBook(book);
+      await saveBook({
+        variables: { book }
+      });
 
       // if book successfully saves to user's account, save book id to state
       setSavedBookIds([...savedBookIds, book.googleBookId]);

@@ -1,25 +1,26 @@
-// see SignupForm.js for comments
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-
-import { loginUser, registerUser } from '../utils/API';
+import { useMutation } from '@apollo/client';
+import { REGISTER_USER, LOGIN_USER } from '../graphql/mutations';
 import { useStore } from '../store';
 
 const initialFormData = {
   username: '',
   email: '',
-  password: '',
+  password: '', 
   errorMessage: ''
 };
 
-// biome-ignore lint/correctness/noEmptyPattern: <explanation>
-const AuthForm = ({ isLogin, handleModalClose }: { handleModalClose: () => void; isLogin: boolean;}) => {
+const AuthForm = ({ isLogin, handleModalClose }: { handleModalClose: () => void; isLogin: boolean; }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [showAlert, setShowAlert] = useState(false);
-  const {setState} = useStore()!;
+  const { setState } = useStore()!;
   const navigate = useNavigate();
+
+  const [registerUser] = useMutation(REGISTER_USER);
+  const [loginUser] = useMutation(LOGIN_USER);
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -32,21 +33,23 @@ const AuthForm = ({ isLogin, handleModalClose }: { handleModalClose: () => void;
     try {
       const authFunction = isLogin ? loginUser : registerUser;
 
-      const res = await authFunction(formData);
-      
+      const { data } = await authFunction({
+        variables: { ...formData }
+      });
+
       setState((oldState) => ({
         ...oldState,
-        user: res.data.user
+        user: data.user
       }));
 
-      setFormData({...initialFormData});
+      setFormData({ ...initialFormData });
       handleModalClose();
 
       navigate('/');
     } catch (err: any) {
       setFormData({
         ...formData,
-        errorMessage: err.response.data.message
+        errorMessage: err.message
       });
 
       setShowAlert(true);

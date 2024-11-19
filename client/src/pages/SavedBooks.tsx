@@ -1,25 +1,38 @@
 import { useState, useEffect } from 'react';
 import { Container, Card, Button } from 'react-bootstrap';
+import { useQuery, useMutation } from '@apollo/client';
 
-import { getUserBooks, deleteBook } from '../utils/API';
+import { GET_USER_BOOKS } from '../graphql/queries';
+import { DELETE_BOOK } from '../graphql/mutations';
 import { Book } from '../interfaces/index.d';
 import { useStore } from '../store';
 
 const SavedBooks = () => {
   const [userBooks, setUserBooks] = useState<Book[]>([]);
   const { state } = useStore()!;
+  const { data, loading } = useQuery(GET_USER_BOOKS);
+  const [deleteBook] = useMutation(DELETE_BOOK);
 
   useEffect(() => {
-    getUserBooks()
-      .then(res => {
-        setUserBooks([...res.data])
-      })
-  }, []);
+    if (data) {
+      setUserBooks([...data.getUserBooks]);
+    }
+  }, [data]);
 
   // create function that accepts the book's mongo _id value as param and deletes the book from the database
   const handleDeleteBook = async (bookId: string) => {
     try {
-      await deleteBook(bookId);
+      await deleteBook({
+        variables: { bookId },
+        update: (cache) => {
+          const existingBooks = cache.readQuery({ query: GET_USER_BOOKS });
+          const newBooks = (existingBooks as { getUserBooks: Book[] }).getUserBooks.filter((book: Book) => book.googleBookId !== bookId);
+          cache.writeQuery({
+            query: GET_USER_BOOKS,
+            data: { getUserBooks: newBooks },
+          });
+        },
+      });
 
       setUserBooks(userBooks.filter(book => book.googleBookId !== bookId));
     } catch (err) {
@@ -31,7 +44,7 @@ const SavedBooks = () => {
     <>
       <div className='text-light bg-dark p-5'>
         <Container>
-          <h1>Viewing {!state.loading && state.user.username}'s saved books!</h1>
+          <h1>Viewing {!loading && state.user.username}'s saved books!</h1>
         </Container>
       </div>
 
