@@ -1,4 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
+
+declare module 'express' {
+  export interface Request {
+    user?: { user_id: Types.ObjectId };
+  }
+}
 import {Types} from 'mongoose';
 import jwt from 'jsonwebtoken';
 
@@ -43,7 +49,7 @@ export const signToken = (user_id: Types.ObjectId) => {
 /* 
   Route middleware function that blocks an unauthenticated user from triggering a route and attaches the user_id to the req object
 */
-export const blockGuest = async (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   // Get the user's id from the request cookie
   const user_id = getUserId(req);
 
@@ -55,8 +61,9 @@ export const blockGuest = async (req: Request, res: Response, next: NextFunction
     return;
   }
 
-  // Attach the user's id to the request 
-  req.user_id = user_id;
+ 
+  // Attach the user's id to the request object
+  req.user = { user_id };
 
   // Call the next route callback function
   next();
