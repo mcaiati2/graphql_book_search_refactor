@@ -119,7 +119,7 @@ export const loginUser = async (req: Request, res: Response) => {
     sameSite: true
   });
 
-  return res.json({ 
+  return res.json({
     user: user
   });
 };
@@ -147,5 +147,19 @@ export const Mutation = {
     });
 
     return { user };
+  }
+};
+
+
+
+// -------------------------- logout user 
+// Clears the client-side cookie to log the user out
+export const Mutation = {
+  ...Mutation,
+  logoutUser: async (_: any, __: any, { res }: { res: Response }) => {
+    res.clearCookie('book_app_token');
+    return {
+      message: 'Logged out successfully!'
+    };
   }
 };

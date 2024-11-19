@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, createContext } from 'react';
-
-import { getUser } from '../utils/API';
+import { useQuery } from '@apollo/client';
+import { GET_USER } from '../graphql/queries';
 
 interface StoreProviderProps {
   children: React.ReactNode;
@@ -25,20 +25,17 @@ const initialState = {
 
 export function StoreProvider(props: StoreProviderProps) {
   const [state, setState] = useState(initialState);
+  const { data } = useQuery(GET_USER);
 
   useEffect(() => {
-    // Retrieve the user's data if they have a valid cookie/JWT
-    // If they don't have a cookie, data.user will be null
-    getUser()
-      .then(res => {
-        setState({
-          ...state,
-          loading: false,
-          user: res.data.user
-        })
-      })
-
-  }, []);
+    if (data) {
+      setState({
+        ...state,
+        loading: false,
+        user: data.getUser.user
+      });
+    }
+  }, [data]);
 
   return (
     <StoreContext.Provider value={{
@@ -50,4 +47,4 @@ export function StoreProvider(props: StoreProviderProps) {
   )
 }
 
-export const useStore = () => useContext(StoreContext)
+export const useStore = () => useContext(StoreContext);

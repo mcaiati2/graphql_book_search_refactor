@@ -1,11 +1,18 @@
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client'
 
 import App from './App.js'
 import SearchBooks from './pages/SearchBooks.js'
 import SavedBooks from './pages/SavedBooks.js'
 import { StoreProvider } from './store/index.js'
+
+// Create an Apollo Client
+const client = new ApolloClient({
+  uri: 'http://localhost:4000/graphql', // Replace with your GraphQL endpoint
+  cache: new InMemoryCache()
+})
 
 const router = createBrowserRouter([
   {
@@ -35,10 +42,12 @@ const router = createBrowserRouter([
 })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <StoreProvider>
-    <RouterProvider router={router} future={{
-      // Router optional flag to get rid of future update warnings
-      v7_startTransition: true
-    }} />
-  </StoreProvider>
+  <ApolloProvider client={client}>
+    <StoreProvider>
+      <RouterProvider router={router} future={{
+        // Router optional flag to get rid of future update warnings
+        v7_startTransition: true
+      }} />
+    </StoreProvider>
+  </ApolloProvider>
 )

@@ -33,20 +33,38 @@ export const LOGOUT_USER = gql`
   }
 `;
 
-
-// Pet Mutations
-export const CREATE_PET = gql`
-  mutation CreatePet($name: String, $type: String, $age: Int) {
-    createPet(name: $name, type: $type, age: $age) {
-      message
+export const SAVE_BOOK = gql`
+    mutation saveBook($bookData: BookInput!) {
+        saveBook(bookData: $bookData) {
+            _id
+            username
+            email
+            savedBooks {
+                bookId
+                authors
+                description
+                title
+                image
+                link
+            }
+        }
     }
-  }
 `;
 
-export const CREATE_POST = gql`
-  mutation CreatePost($title: String, $body: String, $pet: ID) {
-    createPost(title: $title, body: $body, pet: $pet) {
-      message
+export const DELETE_BOOK = gql`
+    mutation deleteBook($bookId: ID!) {
+        deleteBook(bookId: $bookId) {
+            _id
+            username
+            email
+            savedBooks {
+                bookId
+                authors
+                description
+                title
+                image
+                link
+            }
+        }
     }
-  }
 `;
