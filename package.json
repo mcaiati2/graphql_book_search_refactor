@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/dist/server.js",
     "dev": "concurrently \"cd server && npm run watch\" \"wait-on tcp:3001 && cd client && npm run dev\"",
-    "install": "cd ./server && npm i && cd ../client",
+    "install": "cd ./server && npm i && cd ../client && npm i",
     "build": "concurrently \"cd server && npm run build\" \"cd client && npm run build\"",
     "render:install": "cd ./server && npm i",
     "save": "git add -A && git commit -m \"ready for deploy\"",
@@ -19,5 +19,8 @@
   "devDependencies": {
     "concurrently": "^8.2.0",
     "wait-on": "^8.0.1"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.0"
   }
 }
